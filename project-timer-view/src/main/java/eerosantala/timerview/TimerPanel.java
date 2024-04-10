@@ -5,10 +5,13 @@ import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.Timer;
 import javax.swing.JButton;
+import javax.swing.JDialog;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 import java.awt.BorderLayout;
 
 public class TimerPanel {
@@ -19,7 +22,10 @@ public class TimerPanel {
     private int originalTime;
     private JButton startButton;
 
-    public TimerPanel(int setTime) {
+    private Properties properties;
+
+    public TimerPanel(int setTime, Properties props) {
+        properties = props;
         this.startTime = setTime;
         this.originalTime = setTime;
         this.panel = new JPanel();
@@ -40,22 +46,24 @@ public class TimerPanel {
                     if (startTime <= 0) {
                         timer.stop();
                         String fileName = com.solibri.smc.api.SMC.getModel().getName();
-                        String folderPath = "C:\\Temp\\";
+                        String folderPath = properties.getProperty("storePathField");
                         Path dirPath = Paths.get(folderPath);
-                        if (!java.nio.file.Files.exists(dirPath)) {
-                            String pathToSave = folderPath + "autoclose_" + fileName + getCurrentDateTime() + ".smc";
+                        if (java.nio.file.Files.exists(dirPath)) {
+                            String pathToSave = folderPath + "\\autoclose_" + fileName + "_" + getCurrentDateTime()
+                                    + ".smc";
                             Path path = Paths.get(pathToSave);
-                            com.solibri.smc.api.SMC.saveModel(path);
-                        }
+                            Boolean saveOnClose = Boolean.parseBoolean(properties.getProperty("saveOnCloseField"));
+                            if (saveOnClose) {
+                                com.solibri.smc.api.SMC.saveModel(path);
+                            }
 
+                        }
                         com.solibri.smc.api.SMC.shutdownNow();
                         resetTimer();
                     }
-
                 } else {
                     timerLabel.setText(formatTime(startTime));
                 }
-
             }
         });
 

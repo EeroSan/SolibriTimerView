@@ -1,8 +1,11 @@
 package eerosantala.timerview;
 
+import java.io.File;
 import java.util.Collection;
+import java.util.Properties;
 import java.util.Set;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import com.solibri.smc.api.model.Component;
@@ -12,6 +15,9 @@ public final class TimerView implements View {
 
     private TimerPanel timerPanel;
     private JLabel lastReset;
+
+    private String HOME_DIR = System.getProperty("user.home");
+    private String CONFIG_FILE_PATH = HOME_DIR + "\\Solibri\\timer_view.config";
 
     @Override
     public String getUniqueId() {
@@ -28,8 +34,25 @@ public final class TimerView implements View {
         this.lastReset = new JLabel("last reset");
         this.lastReset.setHorizontalAlignment(JLabel.CENTER);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        timerPanel = new TimerPanel(1 * 60);
+        Properties properties = SettingsView.loadPropertiesFile(new File(CONFIG_FILE_PATH));
+        int time = 60;
+        if (properties != null) {
+            try {
+                time = Integer.parseInt(properties.getProperty("timeInSeccondsField"));
+            } catch (NumberFormatException e) {
+                time = 60;
+            }
+        }
+
+        timerPanel = new TimerPanel(time, properties);
+        JButton settingsButton = new JButton("Settings");
+        settingsButton.addActionListener(e -> {
+            SettingsView settingsView = new SettingsView(CONFIG_FILE_PATH);
+            settingsView.setVisible(true);
+        });
+
         panel.add(timerPanel.getPanel());
+        panel.add(settingsButton);
         panel.add(this.lastReset);
 
     }
